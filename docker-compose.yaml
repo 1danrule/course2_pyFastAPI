@@ -9,4 +9,4 @@ services:
     ports:
       - "8010:8010"
     volumes:
-      - ./documentation:/docs
+      - ./documentation:/docs:ro
