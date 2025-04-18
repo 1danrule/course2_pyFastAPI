@@ -8,3 +8,5 @@ services:
     restart: unless-stopped
     ports:
       - "8010:8010"
+    volumes:
+      - ./documentation:/docs
