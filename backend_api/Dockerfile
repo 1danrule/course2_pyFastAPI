@@ -1,8 +1,15 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
-ENV POETRY_NO_INTERACTION=1
+#ENV POETRY_NO_INTERACTION=1
+
+ENV PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    PIP_NO_CACHE_DIR=1
 
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir poetry \
@@ -13,4 +20,4 @@ RUN poetry install --no-ansi --no-root --no-interaction
 
 COPY /app /app
 
-EXPOSE 9999
+EXPOSE 25000
