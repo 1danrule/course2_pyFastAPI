@@ -38,7 +38,6 @@ jobs:
 
           poetry install
           poetry add black
-          poetry add isort
           poetry add flake8
 
       #----------------------------------------------
@@ -48,5 +47,4 @@ jobs:
         run: |
           source .venv/bin/activate
           black . --check
-          isort .
           flake8 .
