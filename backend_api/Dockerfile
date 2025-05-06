@@ -4,6 +4,9 @@ WORKDIR /app
 
 ENV POETRY_NO_INTERACTION=1
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends make
+
 #ENV PYTHONFAULTHANDLER=1 \
 #    PYTHONHASHSEED=random \
 #    PYTHONUNBUFFERED=1 \
