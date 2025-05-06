@@ -1,11 +1,8 @@
-from pydantic import (BaseModel, EmailStr, Field, ValidationInfo,
-                      model_validator)
+from pydantic import BaseModel, EmailStr, Field, ValidationInfo, model_validator
 
 
 class BaseFields(BaseModel):
-    email: EmailStr = Field(
-        description="User email", examples=["daniil.dankovskiy2018@gmail.com"]
-    )
+    email: EmailStr = Field(description="User email", examples=["daniil.dankovskiy2018@gmail.com"])
     name: str = Field(description="User nickname", examples=["Casper"])
 
 
