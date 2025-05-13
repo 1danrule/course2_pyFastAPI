@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from applications.auth.password_handler import PasswordEncrypt
 from applications.users.models import User
 from applications.users.schemas import BaseFields, RegisterUserFields
 from database.session_dependencies import get_async_session
@@ -9,7 +10,7 @@ router_users = APIRouter()
 
 
 async def create_user_in_db(email, name, password, session: AsyncSession):
-    new_user = User(email=email, hashed_password=password, name=name)
+    new_user = User(email=email, hashed_password=PasswordEncrypt.get_password_hash(password), name=name)
     session.add(new_user)
     await session.commit()
 
