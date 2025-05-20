@@ -41,5 +41,14 @@ class AuthHandler:
         print(token)
         return token
 
+    async def decode_token(self, token: str) -> dict:
+        try:
+            payload = jwt.decode(token, self.secret, [self.algorithm])
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Time is out")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
+
 
 auth_handler = AuthHandler()
