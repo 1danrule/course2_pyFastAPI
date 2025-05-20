@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from applications.auth.password_handler import PasswordEncrypt
 from applications.users.crud import get_user_by_email
-from database.session_dependencies import get_async_session
 from settings import settings
 
 
