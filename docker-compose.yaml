@@ -44,6 +44,27 @@ services:
     networks:
       - main_network
 
+
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend
+    container_name: frontend
+    hostname: frontend
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./frontend/app:/app
+    ports:
+      - "12346:12346"
+    command: |
+      sh -c "
+      uvicorn main:app --port=12346 --host=0.0.0.0 --reload
+      "
+    networks:
+      - main_network
+
   nginx:
     image: nginx:alpine
     container_name: nginx
