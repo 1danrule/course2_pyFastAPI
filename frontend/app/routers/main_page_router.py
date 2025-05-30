@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Depends, status
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 import httpx
 
 router = APIRouter()
@@ -34,20 +35,37 @@ async def get_user_info(access_token: str):
         print(response.json())
         return response.json()
 
+async def get_current_user_with_tokens(request: Request) -> dict:
+    access_token = request.cookies.get('access_token')
+    if not access_token:
+        return {}
+    user = await get_user_info(access_token)
+    user['access_token'] = access_token
+    return user
+
+
 @router.get('/login')
 @router.post('/login')
-async def login(request: Request, user_email: str = Form(''), password: str = Form('')):
-    print(request.method, 555555555)
-    print(F"{user_email}")
-    print(F"{password}")
+async def login(request: Request, user: dict=Depends(get_current_user_with_tokens), user_email: str = Form(''), password: str = Form('')):
+    context = {'request': request}
+    print(user, 5555555555555555555555)
+    if user.get('name'):
+        redirect_url = request.url_for("index")
+        response = RedirectResponse(redirect_url, status_code=status.HTTP_303_SEE_OTHER)
+        return response
+
+    if request.method == "GET":
+        response = templates.TemplateResponse('login.html', context=context)
+        response.delete_cookie('access_token')
+        return response
 
     user_tokens = await login_user(user_email, password)
     access_token = user_tokens.get('access_token')
-    user = None
-    if access_token:
-        user = await get_user_info(access_token)
+    if not access_token:
+        return templates.TemplateResponse('login.html', context=context)
 
-
-    context = {'request': request, 'user': user}
+    user = await get_user_info(access_token)
+    context["user"] = user
     response = templates.TemplateResponse('login.html', context=context)
+    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=60*5)
     return response
