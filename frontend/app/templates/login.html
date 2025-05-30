@@ -4,6 +4,13 @@
 {% block content %}
 
 
+{% if errors %}
+<div class="alert alert-danger" role="alert">
+  {{ errors[0] }}
+</div>
+{% endif %}
+
+
 <form method="post" action="{{ url_for('login') }}">
   <div class="mb-3">
     <label for="exampleInputEmail1" class="form-label">Email address</label>
