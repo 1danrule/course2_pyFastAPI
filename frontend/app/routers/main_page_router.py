@@ -48,7 +48,7 @@ async def get_user_info(access_token: str):
 @router.get('/login')
 @router.post('/login')
 async def login(request: Request, user: dict=Depends(get_current_user_with_tokens), user_email: str = Form(''), password: str = Form('')):
-    context = {'request': request}
+    context = {'request': request, "entered_email": user_email}
     print(user, 5555555555555555555555)
     redirect_url = request.url_for("index")
     if user.get('name'):
