@@ -8,9 +8,19 @@ router = APIRouter()
 templates = Jinja2Templates(directory='templates')
 
 
+async def get_current_user_with_tokens(request: Request) -> dict:
+    access_token = request.cookies.get('access_token')
+    if not access_token:
+        return {}
+    user = await get_user_info(access_token)
+    user['access_token'] = access_token
+    return user
+
 @router.get('/')
-async def index(request: Request):
+async def index(request: Request, user: dict=Depends(get_current_user_with_tokens)):
     context = {'request': request}
+    if user.get('name'):
+        context['user'] = user
     response = templates.TemplateResponse('index.html', context=context)
     return response
 
@@ -34,15 +44,6 @@ async def get_user_info(access_token: str):
         )
         print(response.json())
         return response.json()
-
-async def get_current_user_with_tokens(request: Request) -> dict:
-    access_token = request.cookies.get('access_token')
-    if not access_token:
-        return {}
-    user = await get_user_info(access_token)
-    user['access_token'] = access_token
-    return user
-
 
 @router.get('/login')
 @router.post('/login')
