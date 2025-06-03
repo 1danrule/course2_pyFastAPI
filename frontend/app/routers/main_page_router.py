@@ -1,22 +1,11 @@
 from fastapi import APIRouter, Request, Form, Depends, status
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-import httpx
-
-from settings import settings
+from backend_api.api import get_current_user_with_tokens, login_user
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory='templates')
-
-
-async def get_current_user_with_tokens(request: Request) -> dict:
-    access_token = request.cookies.get('access_token')
-    if not access_token:
-        return {}
-    user = await get_user_info(access_token)
-    user['access_token'] = access_token
-    return user
 
 @router.get('/')
 async def index(request: Request, user: dict=Depends(get_current_user_with_tokens)):
@@ -25,27 +14,6 @@ async def index(request: Request, user: dict=Depends(get_current_user_with_token
         context['user'] = user
     response = templates.TemplateResponse('index.html', context=context)
     return response
-
-async def login_user(user_email: str, password: str):
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url=f'{settings.BACKEND_API}auth/login',
-            data={"username": user_email, 'password': password}
-
-        )
-        print(response.json())
-        return response.json()
-
-
-async def get_user_info(access_token: str):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            url=f'{settings.BACKEND_API}auth/get-my-info',
-            headers={"Authorization": f'Bearer {access_token}'}
-
-        )
-        print(response.json())
-        return response.json()
 
 @router.get('/login')
 @router.post('/login')
@@ -81,4 +49,3 @@ async def logout(request: Request):
     response = RedirectResponse(redirect_url, status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie('access_token')
     return response
-
