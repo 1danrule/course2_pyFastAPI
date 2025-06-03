@@ -17,7 +17,7 @@ services:
     env_file:
       - .env
     ports:
-      - "6655:${POSTGRES_PORT}"
+      - "6651:${POSTGRES_PORT}"
     volumes:
       - postgres_datastorage:/var/lib/postgresgl/data
     networks:
@@ -44,7 +44,6 @@ services:
     networks:
       - main_network
 
-
   frontend:
     build:
       dockerfile: Dockerfile
@@ -57,17 +56,18 @@ services:
     volumes:
       - ./frontend/app:/app
     ports:
-      - "12346:12346"
+      - "12345:12345"
     command: |
       sh -c "
-      uvicorn main:app --port=12346 --host=0.0.0.0 --reload
+      uvicorn main:app --port=12345 --host=0.0.0.0 --reload
       "
     networks:
       - main_network
 
-  nginx:
+
+  nginx_2:
     image: nginx:alpine
-    container_name: nginx
+    container_name: nginx_2
     restart: always
     ports:
       - "80:80"
@@ -75,11 +75,6 @@ services:
       - main_network
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-
-
-
-# megogo напомнить учителю показать на этом пример
-
 
 
 networks:

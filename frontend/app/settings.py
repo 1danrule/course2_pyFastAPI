@@ -15,6 +15,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-
-
-settings = get_settings()
