@@ -10,9 +10,18 @@ async def login_user(user_email: str, password: str):
             data={"username": user_email, 'password': password}
 
         )
-        print(response.json())
         return response.json()
 
+
+async def register_user(user_email: str, password: str, name: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            url=f'{settings.BACKEND_API}users/create',
+            data={"name": name, 'password': password, "email": user_email}
+
+        )
+        print(response.json(), 88888888888)
+        return response.json()
 
 async def get_current_user_with_tokens(request: Request) -> dict:
     access_token = request.cookies.get('access_token')
@@ -30,5 +39,4 @@ async def get_user_info(access_token: str):
             headers={"Authorization": f'Bearer {access_token}'}
 
         )
-        print(response.json())
         return response.json()
