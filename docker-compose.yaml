@@ -30,6 +30,8 @@ services:
     container_name: backend_api
     hostname: backend_api
     restart: always
+    depends_on:
+      - notification
     env_file:
       - .env
     volumes:
