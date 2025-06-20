@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, UploadFile, Depends
 import uuid
-
+from applications.products.crud import get_products_data
 from applications.auth.security import admin_required
 from applications.products.crud import create_product_in_db
 from applications.products.schemas import ProductSchema, SearchParamsSchema
@@ -46,4 +46,5 @@ async def get_product(pk: int):
 
 @products_router.get('/')
 async def get_products(params: Annotated[SearchParamsSchema, Depends()], session: AsyncSession = Depends(get_async_session)):
-    return
+    result = await get_products_data(params, session)
+    return result
