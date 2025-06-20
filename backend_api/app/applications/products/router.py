@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Body, UploadFile, Depends
 import uuid
 
+from applications.auth.security import admin_required
 from applications.products.crud import create_product_in_db
 from applications.products.schemas import ProductSchema
+from applications.users.models import User
 from services.s3.s3 import s3_storage
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +15,7 @@ from database.session_dependencies import get_async_session
 products_router = APIRouter()
 
 
-@products_router.post('/')
+@products_router.post('/', dependencies=[Depends(admin_required)])
 async def create_product(
         main_image: UploadFile,
         images: list[UploadFile] = None,
