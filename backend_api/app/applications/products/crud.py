@@ -1,17 +1,10 @@
 import uuid
-
-from fastapi import HTTPException
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-
-from applications.auth.password_handler import PasswordEncrypt
+from typing import Annotated
 from applications.products.models import Product
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from applications.users.crud import create_user_in_db, get_user_by_email, activate_user_account
-from applications.users.schemas import BaseUserInfo, RegisterUserFields
-from database.session_dependencies import get_async_session
+from applications.products.schemas import SearchParamsSchema, SortEnum, SortByEnum
+from sqlalchemy import asc, desc, select, func
+import math
 
 
 async def create_product_in_db(product_uuid, title, description, price, main_image, images, session) -> Product:
@@ -35,3 +28,32 @@ async def create_product_in_db(product_uuid, title, description, price, main_ima
 
     await session.commit()
     return new_product
+
+
+async def get_products_data(params: SearchParamsSchema, session: AsyncSession):
+    query = select(Product)
+    count_query = select(func.count()).select_from(Product)
+
+    order_direction = asc if params.order_direction == SortEnum.ASC else desc
+
+    #if params.q:
+
+
+
+
+    sort_field = Product.price if params.sort_by == SortByEnum.PRICE else Product.id
+    query = query.order_by(order_direction(sort_field))
+    offset = (params.page - 1) * params.limit
+    query = query.offset(offset).limit(params.limit)
+
+    result = await session.execute(query)
+    result_count = await session.execute(count_query)
+    total = result_count.scalar()
+
+    return {
+        "items": result.scalars().all(),
+        "total": total,
+        "page": params.page,
+        "limit": params.limit,
+        "pages": math.ceil(total / params.limit)
+    }

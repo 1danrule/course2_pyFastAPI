@@ -21,5 +21,7 @@ async def user_login(
 
 
 @router_auth.get("/get-my-info")
-async def get_my_info(user: User = Depends(get_current_user)) -> BaseUserInfo:
+async def get_my_info(
+        user: User = Depends(get_current_user)
+) -> BaseUserInfo:
     return user
