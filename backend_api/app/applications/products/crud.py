@@ -3,7 +3,7 @@ from typing import Annotated
 from applications.products.models import Product
 from sqlalchemy.ext.asyncio import AsyncSession
 from applications.products.schemas import SearchParamsSchema, SortEnum, SortByEnum
-from sqlalchemy import asc, desc, select, func
+from sqlalchemy import asc, desc, select, func, or_, and_
 import math
 
 
@@ -18,8 +18,8 @@ async def create_product_in_db(product_uuid, title, description, price, main_ima
     """
     new_product = Product(
         uuid_data=product_uuid,
-        title=title,
-        description=description,
+        title=title.strip(),
+        description=description.strip(),
         price=price,
         main_image=main_image,
         images=images
@@ -36,9 +36,20 @@ async def get_products_data(params: SearchParamsSchema, session: AsyncSession):
 
     order_direction = asc if params.order_direction == SortEnum.ASC else desc
 
-    #if params.q:
-
-
+    if params.q:
+        search_fields = [Product.title, Product.description]
+        if params.use_sharp_q_filter:
+            cleaned_query = params.q.strip().lower()
+            search_condition = or_(*[func.lower(field) == cleaned_query for field in search_fields])
+            query = query.filter(search_condition)
+            count_query = count_query.filter(search_condition)
+        else:
+            words = [word for word in params.q.strip().split() if len(word) > 1]
+            search_condition = or_(
+                and_(*(search_field.icontains(word) for word in words)) for search_field in search_fields
+            )
+            query = query.filter(search_condition)
+            count_query = count_query.filter(search_condition)
 
 
     sort_field = Product.price if params.sort_by == SortByEnum.PRICE else Product.id
@@ -53,7 +64,7 @@ async def get_products_data(params: SearchParamsSchema, session: AsyncSession):
     return {
         "items": result.scalars().all(),
         "total": total,
-        "page": params.page,
-        "limit": params.limit,
-        "pages": math.ceil(total / params.limit)
+        'page': params.page,
+        'limit': params.limit,
+        'pages': math.ceil(total / params.limit)
     }
