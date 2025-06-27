@@ -22,6 +22,19 @@ async def index(request: Request, query: str = Form(''), user: dict=Depends(get_
     return response
 
 
+@router.get('/product/{product_id}')
+async def product_detail(request: Request, product_id: int, query: str = Form(''), user: dict=Depends(get_current_user_with_tokens)):
+    # products = await get_products(query)
+    context = {
+        'request': request,
+        #"products": product,
+    }
+    if user.get('name'):
+        context['user'] = user
+    response = templates.TemplateResponse('product_detail.html', context=context)
+    return response
+
+
 
 @router.get('/login')
 @router.post('/login')
