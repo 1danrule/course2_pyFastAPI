@@ -1,21 +1,22 @@
 from fastapi import APIRouter, Request, Form, Depends, status
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from backend_api.api import get_current_user_with_tokens, login_user, register_user, get_products
+
+from backend_api.api import login_user, register_user, get_products, get_product, get_current_user_with_tokens
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory='templates')
 
+
 @router.get('/')
 @router.post('/')
-async def index(request: Request, query: str = Form(''), user: dict=Depends(get_current_user_with_tokens)):
+async def index(request: Request, query: str = Form(''), user: dict = Depends(get_current_user_with_tokens)):
     products = await get_products(query)
     context = {
         'request': request,
         "products": products['items']
     }
-    print(products, 555555555555555)
     if user.get('name'):
         context['user'] = user
     response = templates.TemplateResponse('index.html', context=context)
@@ -23,11 +24,11 @@ async def index(request: Request, query: str = Form(''), user: dict=Depends(get_
 
 
 @router.get('/product/{product_id}')
-async def product_detail(request: Request, product_id: int, user: dict=Depends(get_current_user_with_tokens)):
-    # products = await get_products(query)
+async def product_detail(request: Request, product_id: int, user: dict = Depends(get_current_user_with_tokens)):
+    product = await get_product(product_id)
     context = {
         'request': request,
-        #"products": product,
+        "product": product,
     }
     if user.get('name'):
         context['user'] = user
@@ -35,12 +36,11 @@ async def product_detail(request: Request, product_id: int, user: dict=Depends(g
     return response
 
 
-
 @router.get('/login')
 @router.post('/login')
-async def login(request: Request, user: dict=Depends(get_current_user_with_tokens), user_email: str = Form(''), password: str = Form('')):
+async def login(request: Request, user: dict = Depends(get_current_user_with_tokens), user_email: str = Form(''),
+                password: str = Form('')):
     context = {'request': request, "entered_email": user_email}
-    print(user)
     redirect_url = request.url_for("index")
     if user.get('name'):
         response = RedirectResponse(redirect_url, status_code=status.HTTP_303_SEE_OTHER)
@@ -55,12 +55,10 @@ async def login(request: Request, user: dict=Depends(get_current_user_with_token
     access_token = user_tokens.get('access_token')
     if not access_token:
         errors = ["Incorrect login or password"]
-        context["errors"] = errors
+        context['errors'] = errors
         return templates.TemplateResponse('login.html', context=context)
-
-
     response = RedirectResponse(redirect_url, status_code=status.HTTP_303_SEE_OTHER)
-    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=60*5)
+    response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=60 * 5)
     return response
 
 
@@ -76,11 +74,11 @@ async def logout(request: Request):
 @router.post('/register')
 async def register(
         request: Request,
-        user: dict=Depends(get_current_user_with_tokens),
+        user: dict = Depends(get_current_user_with_tokens),
         user_email: str = Form(''),
         password: str = Form(''),
         user_name: str = Form(''),
-        ):
+):
     context = {'request': request, "entered_email": user_email, 'entered_name': user_name}
     redirect_url = request.url_for("index")
     if user.get('name'):
@@ -96,10 +94,11 @@ async def register(
     if created_user.get('email'):
         user_tokens = await login_user(user_email, password)
         access_token = user_tokens.get('access_token')
+
         response = RedirectResponse(redirect_url, status_code=status.HTTP_303_SEE_OTHER)
-        response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=60*5)
+        response.set_cookie(key="access_token", value=access_token, httponly=True, max_age=60 * 5)
         return response
 
-    context["errors"] = [created_user['detail']]
+    context['errors'] = [created_user['detail']]
     response = templates.TemplateResponse('register.html', context=context)
     return response
