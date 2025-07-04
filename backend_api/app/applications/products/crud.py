@@ -1,6 +1,6 @@
 import uuid
 from typing import Annotated
-from applications.products.models import Product, Cart
+from applications.products.models import Product, Cart, CartProduct
 from sqlalchemy.ext.asyncio import AsyncSession
 from applications.products.schemas import SearchParamsSchema, SortEnum, SortByEnum
 from sqlalchemy import asc, desc, select, func, or_, and_
@@ -88,3 +88,17 @@ async def get_or_create_cart(user_id: int, session: AsyncSession) -> Cart:
     session.add(cart)
     await session.commit()
     return cart
+
+
+async def get_or_create_cart_product(product_id: int, cart_id: int, session: AsyncSession) -> CartProduct:
+    query = select(CartProduct).filter_by(cart_id=cart_id, product_id=product_id)
+    result = await session.execute(query)
+    cart_product = result.scalar_one_or_none()
+
+    if cart_product:
+        return cart_product
+
+    cart_product = CartProduct(cart_id=cart_id, product_id=product_id)
+    session.add(cart_product)
+    await session.commit()
+    return cart_product
